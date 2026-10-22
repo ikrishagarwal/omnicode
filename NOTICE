@@ -1,0 +1,8 @@
+OmniCode includes portions adapted from the OmniRush CLI source distribution
+(https://omnirush.ai), licensed under the Apache License, Version 2.0. See
+LICENSE-APACHE-2.0.
+
+The adapted portions in src/lib/auth.js and src/lib/retry.js retain the
+OmniRush device-flow and credential-file compatibility contract. OmniCode does
+not include OmniRush analytics, telemetry, crash reporting, or session-upload
+code.
