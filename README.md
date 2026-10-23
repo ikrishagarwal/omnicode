@@ -7,6 +7,56 @@ omnicode login
 omnicode proxy
 ```
 
+> **Educational proof of concept:** OmniCode is provided solely for
+> educational, research, and interoperability purposes. It is experimental
+> software and is not intended for production use. Read the full
+> [disclaimer](DISCLAIMER.md) before using, modifying, or distributing it.
+
+You are solely responsible for how you use this software and for complying
+with all applicable laws, regulations, contracts, third-party rights, and
+terms of service. The repository owner and contributors do not authorize,
+endorse, or assume responsibility for misuse of this project.
+
+## Installation
+
+### Step 1
+
+Clone the repository.
+
+### Step 2
+
+From the repository directory, make the CLI entry point executable if needed:
+
+```sh
+chmod +x src/cli.js
+```
+
+### Step 3
+
+Then link OmniCode globally with the package manager you use:
+
+```sh
+# npm
+npm link
+
+# pnpm
+pnpm link --global
+
+# Yarn
+yarn link
+
+# Bun
+bun link
+```
+
+#### Step 4
+
+Verify that the command is available:
+
+```sh
+omnicode --help
+```
+
 ## Login
 
 `omnicode login` uses the OmniRush device flow and writes the compatible
@@ -64,11 +114,11 @@ to be copied into a terminal each time.
 
 OmniRush currently lists these three models:
 
-| Model ID | Display name |
-| --- | --- |
-| `gpt-6-astra` | GPT 6 Astra |
-| `gpt-6.1-sol` | GPT 6.1 Sol |
-| `gpt-6-sol` | GPT 6 Sol |
+| Model ID      | Display name |
+| ------------- | ------------ |
+| `gpt-6-astra` | GPT 6 Astra  |
+| `gpt-6.1-sol` | GPT 6.1 Sol  |
+| `gpt-6-sol`   | GPT 6 Sol    |
 
 Create or update your OpenCode configuration at
 `~/.config/opencode/opencode.json`:

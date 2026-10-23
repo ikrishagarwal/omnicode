@@ -1,7 +1,8 @@
 {
   "name": "omnicode",
   "version": "1.0.0",
-  "description": "A telemetry-free OmniRush device login and local token proxy.",
+  "description": "A telemetry-free OmniRush device login and local token proxy to be used in AI agents like opencode.",
+  "private": true,
   "bin": {
     "omnicode": "src/cli.js"
   },
@@ -9,6 +10,7 @@
     "src",
     "NOTICE",
     "README.md",
+    "DISCLAIMER.md",
     "LICENSE-APACHE-2.0"
   ],
   "scripts": {
@@ -21,16 +23,9 @@
     "proxy"
   ],
   "author": "",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "engines": {
     "node": ">=22.19.0"
-  },
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "^11.5.2",
-      "onFail": "download"
-    }
   },
   "type": "module"
 }

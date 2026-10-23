@@ -52,9 +52,9 @@ export async function main(argv = process.argv.slice(2), io = { stdout: process.
   throw new Error(`unknown command: ${command}`);
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))) {
-  main().catch((error) => {
-    process.stderr.write(`omnicode: ${error?.message || String(error)}\n`);
-    process.exitCode = 1;
-  });
-}
+// if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))) {
+main().catch((error) => {
+  process.stderr.write(`omnicode: ${error?.message || String(error)}\n`);
+  process.exitCode = 1;
+});
+// }
