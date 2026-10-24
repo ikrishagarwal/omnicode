@@ -6,7 +6,8 @@
 
 import http from "node:http";
 
-import { CLIENT_HEADER, clientHeaderValue } from "./auth.js";
+import { CLIENT_HEADER, clientHeaderValue, clientVersionValue } from "./auth.js";
+import { UPDATE_REQUIRED_HEADER, parseUpdateHeader, updateRequiredError } from "./update-gate.js";
 
 const HOP_BY_HOP = new Set([
   "connection",
@@ -81,10 +82,38 @@ async function sendUpstreamBody(upstream, res) {
 }
 
 async function bufferedGatewayError(upstream) {
-  if (!(upstream.status === 429 || upstream.status >= 500)) return null;
+  const updateNotice = parseUpdateHeader(upstream.headers.get(UPDATE_REQUIRED_HEADER));
+  const candidate = upstream.status === 426 || upstream.status === 429 || upstream.status >= 500
+    || (upstream.status === 403 && Boolean(updateNotice));
+  if (!candidate) return null;
   const body = Buffer.from(await upstream.arrayBuffer().catch(() => new ArrayBuffer(0)));
   let payload = null;
   try { payload = JSON.parse(body.toString("utf8")); } catch { /* non-JSON error */ }
+  const update = updateRequiredError(upstream.status, payload);
+  if (update) {
+    const reported = clientVersionValue() || "unknown";
+    const minimum = update.minimum || updateNotice?.minimum || "";
+    const base = update.message || "OmniRush no longer supports this client version.";
+    const guidance = `This proxy reports OmniRush ${reported}${minimum ? `; the required minimum is ${minimum}` : ""}. `
+      + "Set OMNIRUSH_CLIENT_VERSION to the installed OmniRush release and restart the proxy.";
+    return {
+      terminal: true,
+      status: 403,
+      body: Buffer.from(JSON.stringify({
+        error: {
+          type: "invalid_request_error",
+          code: "update_required",
+          message: `${base} ${guidance}`,
+          omnirush: {
+            code: "update_required",
+            retry: false,
+            ...(minimum ? { minimum } : {}),
+            ...(updateNotice?.deadline ? { deadline: updateNotice.deadline } : {}),
+          },
+        },
+      })),
+    };
+  }
   const stable = payload?.error?.omnirush;
   const detail = typeof payload?.detail === "string" ? payload.detail : "";
   const code = typeof payload?.error?.code === "string" ? payload.error.code : "";
@@ -146,6 +175,8 @@ export async function startTokenProxy({
   const server = http.createServer((req, res) => {
     forward(req, res).catch((error) => {
       if (res.headersSent || res.writableEnded) return;
+      const detail = error?.cause?.message ? `: ${error.cause.message}` : "";
+      process.stderr.write(`OmniCode proxy ${req.method || "GET"} ${req.url || "/"} failed: ${error?.message || String(error)}${detail}\n`);
       if (error?.statusCode) json(res, error.statusCode, { error: "token_proxy_request_rejected" });
       else json(res, 502, { error: "token_proxy_upstream_error" });
     });

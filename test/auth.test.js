@@ -5,9 +5,12 @@ import path from "node:path";
 import test from "node:test";
 
 import {
+  clientHeaderValue,
+  clientUserAgent,
   createRefresher,
   loadAuth,
   saveAuth,
+  setClientVersion,
 } from "../src/lib/auth.js";
 
 function tempDir() {
@@ -20,6 +23,13 @@ function response(status, payload) {
     headers: { "content-type": "application/json" },
   });
 }
+
+test("client identity reports the OmniRush release, not the OmniCode version", () => {
+  setClientVersion("2.6.9");
+  assert.equal(clientHeaderValue(), "cli/2.6.9");
+  assert.match(clientUserAgent(), /^omnirush\/2\.6\.9 \(/);
+  setClientVersion("");
+});
 
 test("auth.json is readable after a rotated token pair is persisted", async () => {
   const dir = tempDir();

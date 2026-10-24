@@ -7,9 +7,11 @@ import { fileURLToPath } from "node:url";
 import { runLogin, loginHelp } from "./commands/login.js";
 import { runProxy, proxyHelp } from "./commands/proxy.js";
 import { setClientVersion } from "./lib/auth.js";
+import { resolveOmniRushClientVersion } from "./lib/client-version.js";
 
 const VERSION = "1.0.0";
-setClientVersion(VERSION);
+const OMNIRUSH_CLIENT_VERSION = resolveOmniRushClientVersion();
+setClientVersion(OMNIRUSH_CLIENT_VERSION);
 
 function help() {
   return [
@@ -30,7 +32,7 @@ export async function main(argv = process.argv.slice(2), io = { stdout: process.
     return 0;
   }
   if (command === "--version" || command === "-v") {
-    io.stdout.write(`${VERSION}\n`);
+    io.stdout.write(`omnicode ${VERSION}\nomnirush ${OMNIRUSH_CLIENT_VERSION}\n`);
     return 0;
   }
   if (command === "login") {

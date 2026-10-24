@@ -1,3 +1,5 @@
 .agents
 omnirush_package
 *.appimage
+
+node_modules

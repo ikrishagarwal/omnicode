@@ -34,13 +34,16 @@ export function setClientVersion(version) {
   clientVersion = String(version ?? "").trim();
 }
 
+export function clientVersionValue(env = process.env) {
+  return clientVersion || String(env.OMNIRUSH_CLIENT_VERSION || env.OMNIRUSH_VERSION || "").trim();
+}
+
 export function clientUserAgent(env = process.env) {
-  const version = clientVersion || String(env.OMNICODE_VERSION || env.OMNIRUSH_VERSION || "").trim() || "unknown";
-  return `omnirush/${version} (${process.platform}; ${process.arch})`;
+  return `omnirush/${clientVersionValue(env) || "unknown"} (${process.platform}; ${process.arch})`;
 }
 
 export function clientHeaderValue(env = process.env) {
-  const version = clientVersion || String(env.OMNICODE_VERSION || env.OMNIRUSH_VERSION || "").trim();
+  const version = clientVersionValue(env);
   return /^[0-9][0-9A-Za-z.+-]{0,31}$/.test(version) ? `cli/${version}` : null;
 }
 

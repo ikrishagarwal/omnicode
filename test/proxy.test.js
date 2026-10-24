@@ -3,6 +3,7 @@ import http from "node:http";
 import { gzipSync } from "node:zlib";
 import test from "node:test";
 
+import { setClientVersion } from "../src/lib/auth.js";
 import { startTokenProxy } from "../src/lib/proxy.js";
 
 function listen(server) {
@@ -163,6 +164,69 @@ test("proxy turns terminal gateway quota errors into non-retryable errors", asyn
     assert.equal(payload.error.code, "limit_tokens");
     assert.equal(payload.error.omnirush.retry, false);
   } finally {
+    await proxy.close();
+    await new Promise((resolve) => upstream.close(resolve));
+  }
+});
+
+test("proxy reports the configured OmniRush client version", async () => {
+  setClientVersion("2.6.9");
+  const upstream = http.createServer((req, res) => {
+    assert.equal(req.headers["x-omnirush-client"], "cli/2.6.9");
+    assert.equal(req.headers["user-agent"], "omnirush");
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify({ ok: true }));
+  });
+  const upstreamPort = await listen(upstream);
+  const proxy = await startTokenProxy({
+    gatewayUrl: `http://127.0.0.1:${upstreamPort}/omnirush/v1`,
+    port: 0,
+    expectedSecret: "local-secret",
+    getToken: () => "access",
+  });
+  try {
+    const result = await request(`${proxy.baseURL}/models`, { secret: "local-secret" });
+    assert.equal(result.status, 200);
+  } finally {
+    setClientVersion("");
+    await proxy.close();
+    await new Promise((resolve) => upstream.close(resolve));
+  }
+});
+
+test("proxy explains an outdated client version as a non-retryable update error", async () => {
+  setClientVersion("1.0.0");
+  const upstream = http.createServer((_req, res) => {
+    res.writeHead(426, {
+      "content-type": "application/json",
+      "x-omnirush-update-required": "2.6.9; deadline=2026-10-24T00:00:00.000Z",
+    });
+    res.end(JSON.stringify({
+      error: {
+        type: "update_required",
+        code: "update_required",
+        message: "version 1.0.0 is no longer supported",
+      },
+    }));
+  });
+  const upstreamPort = await listen(upstream);
+  const proxy = await startTokenProxy({
+    gatewayUrl: `http://127.0.0.1:${upstreamPort}/omnirush/v1`,
+    port: 0,
+    expectedSecret: "local-secret",
+    getToken: () => "access",
+  });
+  try {
+    const result = await request(`${proxy.baseURL}/responses`, { secret: "local-secret" });
+    const payload = JSON.parse(result.body);
+    assert.equal(result.status, 403);
+    assert.equal(result.headers["x-should-retry"], "false");
+    assert.equal(payload.error.code, "update_required");
+    assert.match(payload.error.message, /2\.6\.9/);
+    assert.match(payload.error.message, /OMNIRUSH_CLIENT_VERSION/);
+    assert.equal(payload.error.omnirush.minimum, "2.6.9");
+  } finally {
+    setClientVersion("");
     await proxy.close();
     await new Promise((resolve) => upstream.close(resolve));
   }

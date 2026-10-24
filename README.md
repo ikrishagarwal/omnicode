@@ -83,6 +83,16 @@ The proxy refreshes rotated credentials and updates the shared `auth.json`, so
 the OmniCode proxy and a later OmniRush CLI installation can use the same
 login state.
 
+OmniCode reports an OmniRush CLI release version to the gateway. It reads the
+version from `omnirush_package/node_modules/omnirush/package.json` when that
+reference install is present, then from an installed `omnirush` package,
+otherwise it uses the built-in default. Override it when OmniRush requires a
+newer release:
+
+```sh
+OMNIRUSH_CLIENT_VERSION=2.6.9 omnicode proxy
+```
+
 Only one proxy can listen on a port. If `omnicode proxy` reports that port
 `8789` is already in use, an OmniCode proxy may already be running; leave it
 running and start OpenCode. To inspect the listener:
@@ -208,6 +218,14 @@ An OmniRush `429 daily_grant_exhausted` response means the account has no
 available grant and the proxy is working. Restart the proxy after updating
 OmniCode so it uses the corrected bare `omnirush` gateway User-Agent; an old
 proxy can otherwise return `403 client_not_allowed`.
+
+If OmniRush says the reported client version is no longer supported, set
+`OMNIRUSH_CLIENT_VERSION` to the installed OmniRush release and restart the
+proxy, or update the reference package under `omnirush_package`:
+
+```sh
+OMNIRUSH_CLIENT_VERSION=2.6.9 omnicode proxy
+```
 
 ## Verification
 
