@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import { runLogin, loginHelp } from "./commands/login.js";
 import { runProxy, proxyHelp } from "./commands/proxy.js";
+import { runUpdate, updateHelp } from "./commands/update.js";
 import { setClientVersion } from "./lib/auth.js";
 import { resolveOmniRushClientVersion } from "./lib/client-version.js";
 
@@ -20,6 +21,7 @@ function help() {
     "Commands:",
     "  login   authenticate this device with OmniRush",
     "  proxy   start a local token-injecting proxy",
+    "  update  update this git checkout from its upstream",
     "",
     "Run `omnicode <command> --help` for command details.",
   ].join("\n");
@@ -43,12 +45,20 @@ export async function main(argv = process.argv.slice(2), io = { stdout: process.
     await runProxy({ argv: args, stdout: io.stdout });
     return 0;
   }
+  if (command === "update") {
+    await runUpdate({ argv: args, stdout: io.stdout });
+    return 0;
+  }
   if (command === "login-help") {
     io.stdout.write(`${loginHelp()}\n`);
     return 0;
   }
   if (command === "proxy-help") {
     io.stdout.write(`${proxyHelp()}\n`);
+    return 0;
+  }
+  if (command === "update-help") {
+    io.stdout.write(`${updateHelp()}\n`);
     return 0;
   }
   throw new Error(`unknown command: ${command}`);

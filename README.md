@@ -1,10 +1,11 @@
 # OmniCode
 
-OmniCode is a small, telemetry-free CLI with two commands:
+OmniCode is a small, telemetry-free CLI:
 
 ```text
 omnicode login
 omnicode proxy
+omnicode update
 ```
 
 > **Educational proof of concept:** OmniCode is provided solely for
@@ -56,6 +57,31 @@ Verify that the command is available:
 ```sh
 omnicode --help
 ```
+
+## Updating
+
+Because `npm link` points the global command at this checkout, updating the
+checkout updates the linked command in place. You do not need to run `npm link`
+again unless package metadata or the `bin` entry changes.
+
+```sh
+omnicode update
+```
+
+The command fetches the current branch's upstream and only fast-forwards. It
+refuses to update when the working tree has uncommitted changes, the branch has
+no upstream, or local and remote commits have diverged. It never discards local
+work.
+
+To check without changing files:
+
+```sh
+omnicode update --check
+```
+
+Restart `omnicode proxy` after updating so the running process loads the new
+code. If the update changes dependencies or package metadata, re-run your
+package manager or link command.
 
 ## Login
 
